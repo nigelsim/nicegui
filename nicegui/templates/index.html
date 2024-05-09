@@ -42,6 +42,7 @@
       <span>Trying to reconnect...</span>
     </div>
     <script type="module">
+      const { True, False, None, createApp, parseElements } = NiceGUI;
       const app = createApp(parseElements(String.raw`{{ elements | safe }}`), {
         version: "{{ version }}",
         prefix: "{{ prefix | safe }}",
