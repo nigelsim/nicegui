@@ -28,7 +28,6 @@
     <script src="{{ prefix | safe }}/_nicegui/{{version}}/static/vue.global.js"></script>
     <script src="{{ prefix | safe }}/_nicegui/{{version}}/static/quasar.umd.js"></script>
     {% endif %}
-    <script src="{{ prefix | safe }}/_nicegui/{{version}}/static/nicegui.js"></script>
 
     <script src="{{ prefix | safe }}/_nicegui/{{version}}/static/lang/{{ language }}.umd.prod.js"></script>
     <script type="importmap">
@@ -42,6 +41,7 @@
       <span>Trying to reconnect...</span>
     </div>
     <script type="module">
+      import { True, False, None, createApp, parseElements } from '{{ prefix | safe }}/_nicegui/{{version}}/static/nicegui.js';
       const app = createApp(parseElements(String.raw`{{ elements | safe }}`), {
         version: "{{ version }}",
         prefix: "{{ prefix | safe }}",

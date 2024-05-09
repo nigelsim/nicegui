@@ -1,6 +1,6 @@
-const True = true;
-const False = false;
-const None = undefined;
+export const True = true;
+export const False = false;
+export const None = undefined;
 
 let app = undefined;
 let mounted_app = undefined;
@@ -8,14 +8,14 @@ let mounted_app = undefined;
 const loaded_libraries = new Set();
 const loaded_components = new Set();
 
-function parseElements(raw_elements) {
+export function parseElements(raw_elements) {
   return JSON.parse(
     raw_elements
-      .replace(/&#36;/g, "$")
-      .replace(/&#96;/g, "`")
-      .replace(/&gt;/g, ">")
-      .replace(/&lt;/g, "<")
-      .replace(/&amp;/g, "&")
+      .replace(/&#36;/g, '$')
+      .replace(/&#96;/g, '`')
+      .replace(/&gt;/g, '>')
+      .replace(/&lt;/g, '<')
+      .replace(/&amp;/g, '&')
   );
 }
 
@@ -40,11 +40,11 @@ function replaceUndefinedAttributes(elements, id) {
 
 function getElement(id) {
   const _id = id instanceof HTMLElement ? id.id : id;
-  return mounted_app.$refs["r" + _id];
+  return mounted_app.$refs['r' + _id];
 }
 
 function runMethod(target, method_name, args) {
-  if (typeof target === "object") {
+  if (typeof target === 'object') {
     if (method_name in target) {
       return target[method_name](...args);
     } else {
@@ -71,12 +71,12 @@ function stringifyEventArgs(args, event_args) {
   args.forEach((arg, i) => {
     if (event_args !== null && i >= event_args.length) return;
     let filtered = {};
-    if (typeof arg !== "object" || arg === null || Array.isArray(arg)) {
+    if (typeof arg !== 'object' || arg === null || Array.isArray(arg)) {
       filtered = arg;
     } else {
       for (let k in arg) {
         // ignore "Restricted" fields in Firefox (see #2469)
-        if (k == "originalTarget") {
+        if (k == 'originalTarget') {
           try {
             arg[k].toString();
           } catch (e) {
@@ -135,15 +135,15 @@ function renderRecursively(elements, id) {
   element.libraries.forEach((library) => loaded_libraries.add(library.name));
 
   const props = {
-    id: "c" + id,
-    ref: "r" + id,
+    id: 'c' + id,
+    ref: 'r' + id,
     key: id, // HACK: workaround for #600 and #898
-    class: element.class.join(" ") || undefined,
-    style: Object.entries(element.style).reduce((str, [p, val]) => `${str}${p}:${val};`, "") || undefined,
+    class: element.class.join(' ') || undefined,
+    style: Object.entries(element.style).reduce((str, [p, val]) => `${str}${p}:${val};`, '') || undefined,
     ...element.props,
   };
   Object.entries(props).forEach(([key, value]) => {
-    if (key.startsWith(":")) {
+    if (key.startsWith(':')) {
       try {
         props[key.substring(1)] = eval(value);
         delete props[key];
@@ -153,7 +153,7 @@ function renderRecursively(elements, id) {
     }
   });
   element.events.forEach((event) => {
-    let event_name = "on" + event.type[0].toLocaleUpperCase() + event.type.substring(1);
+    let event_name = 'on' + event.type[0].toLocaleUpperCase() + event.type.substring(1);
     event.specials.forEach((s) => (event_name += s[0].toLocaleUpperCase() + s.substring(1)));
 
     let handler;
@@ -167,10 +167,10 @@ function renderRecursively(elements, id) {
           listener_id: event.listener_id,
           args: stringifyEventArgs(args, event.args),
         };
-        const emitter = () => window.socket?.emit("event", data);
+        const emitter = () => window.socket?.emit('event', data);
         throttle(emitter, event.throttle, event.leading_events, event.trailing_events, event.listener_id);
-        if (element.props["loopback"] === False && event.type == "update:modelValue") {
-          element.props["model-value"] = args;
+        if (element.props['loopback'] === False && event.type == 'update:modelValue') {
+          element.props['model-value'] = args;
         }
       };
     }
@@ -205,7 +205,7 @@ function renderRecursively(elements, id) {
         );
       }
       const children = data.ids.map((id) => renderRecursively(elements, id));
-      if (name === "default" && element.text !== null) {
+      if (name === 'default' && element.text !== null) {
         children.unshift(element.text);
       }
       return [...rendered, ...children];
@@ -222,24 +222,24 @@ function runJavascript(code, request_id) {
     })
     .then((result) => {
       if (request_id) {
-        window.socket.emit("javascript_response", { request_id, client_id: window.clientId, result });
+        window.socket.emit('javascript_response', { request_id, client_id: window.clientId, result });
       }
     });
 }
 
 function download(src, filename, mediaType, prefix) {
-  const anchor = document.createElement("a");
-  if (typeof src === "string") {
-    anchor.href = src.startsWith("/") ? prefix + src : src;
+  const anchor = document.createElement('a');
+  if (typeof src === 'string') {
+    anchor.href = src.startsWith('/') ? prefix + src : src;
   } else {
     anchor.href = URL.createObjectURL(new Blob([src], { type: mediaType }));
   }
-  anchor.target = "_blank";
-  anchor.download = filename || "";
+  anchor.target = '_blank';
+  anchor.download = filename || '';
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
-  if (typeof src !== "string") {
+  if (typeof src !== 'string') {
     URL.revokeObjectURL(url);
   }
 }
@@ -247,7 +247,7 @@ function download(src, filename, mediaType, prefix) {
 async function loadDependencies(element, prefix, version) {
   if (element.component) {
     const { name, key, tag } = element.component;
-    if (!loaded_components.has(name) && !key.endsWith(".vue")) {
+    if (!loaded_components.has(name) && !key.endsWith('.vue')) {
       const component = await import(`${prefix}/_nicegui/${version}/components/${key}`);
       app.component(tag, component.default);
       loaded_components.add(name);
@@ -267,13 +267,13 @@ function createRandomUUID() {
     return crypto.randomUUID();
   } catch (e) {
     // https://stackoverflow.com/a/2117523/3419103
-    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+    return '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) =>
       (+c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))).toString(16)
     );
   }
 }
 
-function createApp(elements, options) {
+export function createApp(elements, options) {
   replaceUndefinedAttributes(elements, 0);
   return (app = Vue.createApp({
     data() {
@@ -287,7 +287,7 @@ function createApp(elements, options) {
     mounted() {
       mounted_app = this;
       window.clientId = options.query.client_id;
-      const url = window.location.protocol === "https:" ? "wss://" : "ws://" + window.location.host;
+      const url = window.location.protocol === 'https:' ? 'wss://' : 'ws://' + window.location.host;
       window.path_prefix = options.prefix;
       window.socket = io(url, {
         path: `${options.prefix}/_nicegui_ws/socket.io`,
@@ -297,33 +297,33 @@ function createApp(elements, options) {
       });
       const messageHandlers = {
         connect: () => {
-          let tabId = sessionStorage.getItem("__nicegui_tab_id");
+          let tabId = sessionStorage.getItem('__nicegui_tab_id');
           if (!tabId) {
             tabId = createRandomUUID();
-            sessionStorage.setItem("__nicegui_tab_id", tabId);
+            sessionStorage.setItem('__nicegui_tab_id', tabId);
           }
-          window.socket.emit("handshake", { client_id: window.clientId, tab_id: tabId }, (ok) => {
+          window.socket.emit('handshake', { client_id: window.clientId, tab_id: tabId }, (ok) => {
             if (!ok) {
-              console.log("reloading because handshake failed for clientId " + window.clientId);
+              console.log('reloading because handshake failed for clientId ' + window.clientId);
               window.location.reload();
             }
-            document.getElementById("popup").style.opacity = 0;
+            document.getElementById('popup').style.opacity = 0;
           });
         },
         connect_error: (err) => {
-          if (err.message == "timeout") {
-            console.log("reloading because connection timed out");
+          if (err.message == 'timeout') {
+            console.log('reloading because connection timed out');
             window.location.reload(); // see https://github.com/zauberzeug/nicegui/issues/198
           }
         },
         try_reconnect: async () => {
-          document.getElementById("popup").style.opacity = 1;
-          await fetch(window.location.href, { headers: { "NiceGUI-Check": "try_reconnect" } });
-          console.log("reloading because reconnect was requested");
+          document.getElementById('popup').style.opacity = 1;
+          await fetch(window.location.href, { headers: { 'NiceGUI-Check': 'try_reconnect' } });
+          console.log('reloading because reconnect was requested');
           window.location.reload();
         },
         disconnect: () => {
-          document.getElementById("popup").style.opacity = 1;
+          document.getElementById('popup').style.opacity = 1;
         },
         update: async (msg) => {
           for (const [id, element] of Object.entries(msg)) {
@@ -338,10 +338,10 @@ function createApp(elements, options) {
             replaceUndefinedAttributes(this.elements, id);
           }
         },
-        run_javascript: (msg) => runJavascript(msg["code"], msg["request_id"]),
+        run_javascript: (msg) => runJavascript(msg['code'], msg['request_id']),
         open: (msg) => {
-          const url = msg.path.startsWith("/") ? options.prefix + msg.path : msg.path;
-          const target = msg.new_tab ? "_blank" : "_self";
+          const url = msg.path.startsWith('/') ? options.prefix + msg.path : msg.path;
+          const target = msg.new_tab ? '_blank' : '_self';
           window.open(url, target);
         },
         download: (msg) => download(msg.src, msg.filename, msg.media_type, options.prefix),
